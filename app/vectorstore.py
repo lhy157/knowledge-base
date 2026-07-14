@@ -4,6 +4,8 @@ import os
 import chromadb
 
 from app.config import settings
+from app.llm import embed
+
 
 _client = None
 
@@ -21,6 +23,8 @@ def collection_name(library_id: int) -> str:
 
 
 def get_collection(library_id: int):
+    # 不在 collection 上挂 embedding_function：Chroma 1.x 默认会尝试加载 all-MiniLM 并联网下载(79MB)，
+    # 改为在 add/query 时显式传入通义 text-embedding-v3 向量，避免下载且保证维度一致(1024)。
     return get_client().get_or_create_collection(
         name=collection_name(library_id),
         metadata={"hnsw:space": "cosine"},
@@ -28,13 +32,15 @@ def get_collection(library_id: int):
 
 
 def add_chunks(library_id: int, chunks: list[dict]):
-    """chunks: [{"id", "doc_id", "text", "filename"}]"""
     if not chunks:
         return
     col = get_collection(library_id)
+    texts = [c["text"] for c in chunks]
+    embeddings = embed(texts)  # 显式走通义 text-embedding-v3（1024 维）
     col.add(
         ids=[c["id"] for c in chunks],
-        documents=[c["text"] for c in chunks],
+        embeddings=embeddings,
+        documents=texts,
         metadatas=[
             {
                 "doc_id": c["doc_id"],

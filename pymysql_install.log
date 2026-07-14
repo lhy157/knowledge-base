@@ -1,0 +1,5 @@
+Collecting pymysql
+  Downloading pymysql-1.1.2-py3-none-any.whl.metadata (4.3 kB)
+Downloading pymysql-1.1.2-py3-none-any.whl (45 kB)
+Installing collected packages: pymysql
+Successfully installed pymysql-1.1.2
