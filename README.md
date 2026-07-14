@@ -3,6 +3,9 @@
 基于 **Python + LangChain + Chroma + 通义千问** 的企业内部文档知识库问答服务。
 由 Java 后端 `aicontent`（:8080）通过 `/api/kb/*` 代理调用，**不暴露公网、不解析 JWT**，安全边界交给 Java 侧。
 
+> 🚀 **从零跑起来（配置 + 启动分步操作）请读主仓库 [`docs/知识库配置与启动清单.md`](../../docs/知识库配置与启动清单.md)**。
+> 其中最关键的只有一步：**去 [阿里云百炼控制台](https://dashscope.console.aliyun.com/) 创建 API Key，填进 `kb/.env` 的 `QWEN_API_KEY`**。
+
 ---
 
 ## 一、整体架构
@@ -65,7 +68,11 @@ kb/
 
 ```bash
 cd kb
-# 1. 虚拟环境
+# 0. 准备通义百炼 API Key（必填）：
+#    打开 https://dashscope.console.aliyun.com/ → 右上角 API-KEY → 创建
+#    并在「模型广场」开通 qwen-turbo、text-embedding-v3（需有额度）
+
+# 1. 虚拟环境（建议 Python 3.10+；本机 3.8.9 可跑但兼容性边缘）
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 
@@ -73,7 +80,7 @@ source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # 3. 配置密钥
-cp .env.example .env              # 编辑 .env，填入 QWEN_API_KEY
+cp .env.example .env              # 编辑 .env，把 QWEN_API_KEY 改成你的真实 sk-...
 
 # 4. 启动（独立窗口常驻）
 uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
