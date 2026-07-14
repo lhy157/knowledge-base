@@ -2,7 +2,7 @@
 import datetime
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
 
 from app.loader import load_file
 from app.vectorstore import add_chunks, delete_document
@@ -47,8 +47,8 @@ async def upload_document(
 @router.delete("/documents/{doc_id}")
 def delete_document_api(
     doc_id: str,
-    user_id: int = Form(...),
-    library_id: int = Form(...),
+    user_id: int = Query(..., description="调用方用户ID（与 library_id 用于权限校验，向量清理仅依赖 library_id+doc_id）"),
+    library_id: int = Query(..., description="知识库ID，决定清哪个 Chroma collection"),
 ):
     try:
         delete_document(library_id, doc_id)
