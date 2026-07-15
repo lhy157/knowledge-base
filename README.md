@@ -372,6 +372,21 @@ python scripts/test_tencent_conn.py --also-chroma
 | 密钥 | `DASHSCOPE_API_KEY`（通义百炼，qwen 对话 + 可选 chroma 向量化）；腾讯云向量库 `TENCENT_VECTOR_*`；ai_service 各家 Key |
 | Java 侧 | `aicontent`(:8080) 已运行并含 `KbController`，通过 `kb.python-url`（默认 `http://localhost:8002`）转发 |
 
+### 9.1.1 建库建表（MySQL 前置）
+
+知识库所需的元信息表（`kb_library` / `kb_document`）位于 **Java 侧 MySQL 库 `ai_content`** 中（与 `aicontent` 共用同一库）。建表脚本在仓库根 `docs/`（`lhy-gzh/docs/`），执行顺序务必为「先 `init.sql` → 再 `extend.sql` → 最后 `kb.sql`」：
+
+```bash
+# 路径相对仓库根（lhy-gzh/）；若当前在 kb/ 目录则改为 ../docs/init.sql
+mysql -uroot -p ai_content < docs/init.sql      # 建库建表（user/template/generation_history/user_oauth/pay_order/pay_refund 等）
+mysql -uroot -p ai_content < docs/extend.sql    # 扩展 DDL（模板模式/用户公众号/任务/订阅/素材库）
+mysql -uroot -p ai_content < docs/kb.sql        # 知识库表（kb_library / kb_document）
+```
+
+- 三个脚本均用 `CREATE TABLE IF NOT EXISTS`，可**重复执行、不破坏已有数据**。
+- 每个表、每个字段都带 `COMMENT`，便于后期维护；字段含义、枚举取值、外键关联均已写明。
+- ⚠️ **补注释提醒**：若 `ai_content` 库**已先行创建（历史库）**，重跑上面脚本**不会更新已有字段的 `COMMENT`**（MySQL 的 `IF NOT EXISTS` 行为）。此时请额外执行脚本末尾的「为已存在表补字段注释」段落（`init.sql` 与 `kb.sql` 末尾已附 `ALTER ... MODIFY COLUMN ... COMMENT` 语句），可安全重复执行、直接覆盖原注释。
+
 ### 9.2 安装依赖
 
 ```bash
