@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         env_file=str(_ENV_FILE), env_file_encoding="utf-8", extra="ignore"
     )
 
-    qwen_api_key: str = ""
+    dashscope_api_key: str = ""
     kb_port: int = 8002
     chroma_dir: str = "./chroma_data"
     llm_model: str = "qwen-turbo"

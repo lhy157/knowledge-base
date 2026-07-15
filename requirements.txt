@@ -16,6 +16,7 @@ langchain-community>=0.2.0
 langchain-chroma>=0.1.0
 langchain-text-splitters>=0.2.0
 openai>=1.0          # 通义百炼 OpenAI 兼容接口（qwen + text-embedding-v3）
+anthropic>=0.40      # ai_service 的 Claude 原生 SDK
 
 # ===== 文档解析 =====
 pypdf>=4.0

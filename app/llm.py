@@ -1,6 +1,6 @@
 """通义千问 LLM（流式）+ text-embedding-v3 向量化封装。
 
-通过通义百炼的 OpenAI 兼容接口调用，需设置环境变量 QWEN_API_KEY。
+通过通义百炼的 OpenAI 兼容接口调用，需设置环境变量 DASHSCOPE_API_KEY。
 """
 from openai import OpenAI
 
@@ -13,7 +13,7 @@ def _get_client() -> OpenAI:
     global _client
     if _client is None:
         _client = OpenAI(
-            api_key=settings.qwen_api_key,
+            api_key=settings.dashscope_api_key,
             base_url=settings.dashscope_base,
         )
     return _client
