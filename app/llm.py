@@ -20,14 +20,21 @@ def _get_client() -> OpenAI:
 
 
 def embed(texts: list[str]) -> list[list[float]]:
-    """批量文本向量化，返回同顺序的向量列表。"""
-    resp = _get_client().embeddings.create(
-        model=settings.embedding_model,
-        input=texts,
-        dimensions=settings.embedding_dim,  # 固定维度，避免 Chroma 因默认模型下载或维度不一致报错
-    )
-    # 通义返回顺序与输入一致
-    return [item.embedding for item in resp.data]
+    """批量文本向量化，返回同顺序的向量列表。
+
+    通义 text-embedding-v3 单批 input 上限为 10 条，且维度必须落在
+    [64,128,256,512,768,1024]，故按 10 条一批切片发送。
+    """
+    results: list[list[float]] = []
+    for i in range(0, len(texts), 10):
+        batch = texts[i:i + 10]
+        resp = _get_client().embeddings.create(
+            model=settings.embedding_model,
+            input=batch,
+            dimensions=settings.embedding_dim,
+        )
+        results.extend(item.embedding for item in resp.data)
+    return results
 
 
 def stream_chat(prompt: str, history: list[dict] | None = None):
