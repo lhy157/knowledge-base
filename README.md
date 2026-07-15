@@ -15,9 +15,9 @@
    │  /api/kb/*  (Vite 代理 → aicontent :8080)
    ▼
 aicontent :8080  (KbController：校验 JWT → 内部 HTTP 带 user_id 调 Python)
-   │  http://localhost:8001/kb/*
+   │  http://localhost:8002/kb/*
    ▼
-kb-server (Python FastAPI :8001)  ── 复用 qwen LLM + 通义 text-embedding-v3
+kb-server (Python FastAPI :8002)  ── 复用 qwen LLM + 通义 text-embedding-v3
    ├── loader.py       文档解析（pdf/docx/xlsx/md/txt）
    ├── splitter.py     中文切分
    ├── vectorstore.py  Chroma 向量库（按 library_id 隔离 collection，本地持久化）
@@ -28,6 +28,7 @@ kb-server (Python FastAPI :8001)  ── 复用 qwen LLM + 通义 text-embedding
 - **多租户隔离**：每个用户可建多个知识库（`library_id`），Chroma 中每个库对应一个独立 collection（`kb_{library_id}`），向量互相不可见。
 - **命令与查询分离**：文档向量存 Chroma（Python 侧），元信息（`kb_library` / `kb_document`）存 MySQL（Java 侧），通过 `doc_id` 关联。
 - **Java 代理**：Python 不解析 JWT、不直连公网；所有请求由 `aicontent` 校验身份后转发，并以服务端可信身份覆盖 `user_id` / `library_id`，防止越权。
+- **端口约定**：本地/线上统一使用 **8002**（避免与历史 8001 进程混淆）。
 
 ---
 
@@ -83,11 +84,11 @@ pip install -r requirements.txt
 cp .env.example .env              # 编辑 .env，把 QWEN_API_KEY 改成你的真实 sk-...
 
 # 4. 启动（独立窗口常驻）
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
 ```
 
-- 健康检查：`GET http://localhost:8001/kb/health` → `{"status":"ok","service":"kb-server"}`
-- API 文档（自动生成）：`http://localhost:8001/docs`
+- 健康检查：`GET http://localhost:8002/kb/health` → `{"status":"ok","service":"kb-server"}`
+- API 文档（自动生成）：`http://localhost:8002/docs`
 
 ---
 
@@ -96,11 +97,11 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 | 变量 | 默认值 | 说明 |
 |---|---|---|
 | `QWEN_API_KEY` | 空 | 通义百炼 API Key，用于 qwen 对话 + text-embedding-v3（**必填**） |
-| `KB_PORT` | `8001` | 服务端口（Java 侧 `kb.python-url` 需对应） |
+| `KB_PORT` | `8002` | 服务端口（Java 侧 `kb.python-url` 需对应） |
 | `CHROMA_DIR` | `./chroma_data` | Chroma 向量持久化目录（相对/绝对均可） |
 | `LLM_MODEL` | `qwen-turbo` | 对话模型，可换 `qwen-plus` / `qwen-max` |
 | `EMBEDDING_MODEL` | `text-embedding-v3` | 向量化模型 |
-| `EMBEDDING_DIM` | `1536` | 向量维度（换 embedding 模型需同步改） |
+| `EMBEDDING_DIM` | `1024` | 向量维度（换 embedding 模型需同步改） |
 | `RETRIEVE_TOP_K` | `5` | 每次检索召回的相关片段数 |
 
 > 通义兼容端点：`https://dashscope.aliyuncs.com/compatible-mode/v1`（见 `config.py`）。

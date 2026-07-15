@@ -10,3 +10,4 @@
   [32m➜[39m  [1mNetwork[22m: [36mhttp://172.29.16.1:[1m5173[22m/[39m
   [32m➜[39m  [1mNetwork[22m: [36mhttp://172.24.112.1:[1m5173[22m/[39m
 [2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+  TCP    0.0.0.0:5173           0.0.0.0:0              LISTENING       45656

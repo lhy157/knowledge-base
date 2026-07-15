@@ -23,7 +23,10 @@ async def upload_document(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"文档解析失败：{e}")
     if not chunks:
-        raise HTTPException(status_code=400, detail="文档没有可解析的文本内容")
+        raise HTTPException(
+            status_code=400,
+            detail="文档没有可解析的文本内容，可能为扫描版 PDF、图片或空文件，请上传包含可检索文本的 PDF / Word / Excel / Markdown / TXT"
+        )
 
     doc_id = str(uuid.uuid4())
     for c in chunks:

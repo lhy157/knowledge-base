@@ -36,7 +36,9 @@ def add_chunks(library_id: int, chunks: list[dict]):
         return
     col = get_collection(library_id)
     texts = [c["text"] for c in chunks]
-    embeddings = embed(texts)  # 显式走通义 text-embedding-v3（1024 维）
+    # 显式走通义 text-embedding-v3，维度由 .env EMBEDDING_DIM 控制（默认 1024）
+    # 不再使用 Chroma 默认 embedding_function，避免联网下载 all-MiniLM 模型导致超时。
+    embeddings = embed(texts)
     col.add(
         ids=[c["id"] for c in chunks],
         embeddings=embeddings,

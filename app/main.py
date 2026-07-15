@@ -19,5 +19,14 @@ app.include_router(chat.router)
 
 
 @app.get("/kb/health")
+
 def health():
-    return {"status": "ok", "service": "kb-server"}
+
+    return {"status": "ok", "service": "kb-server", "port": settings.kb_port}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    from app.config import settings
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.kb_port)

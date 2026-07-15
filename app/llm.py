@@ -24,6 +24,7 @@ def embed(texts: list[str]) -> list[list[float]]:
     resp = _get_client().embeddings.create(
         model=settings.embedding_model,
         input=texts,
+        dimensions=settings.embedding_dim,  # 固定维度，避免 Chroma 因默认模型下载或维度不一致报错
     )
     # 通义返回顺序与输入一致
     return [item.embedding for item in resp.data]

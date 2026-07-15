@@ -7,6 +7,12 @@ from app.splitter import split_text
 
 def load_file(filename: str, data: bytes) -> List[dict]:
     name = (filename or "").lower()
+    # 无扩展名时按文件头魔数推断，避免图片等二进制被当纯文本处理
+    if not name or "." not in name:
+        if data.startswith(b"%PDF"):
+            name = "unknown.pdf"
+        elif data.startswith(b"PK\x03\x04"):
+            name = "unknown.docx"
     try:
         if name.endswith(".pdf"):
             raw = _pdf(data)
