@@ -13,6 +13,8 @@ chromadb>=0.4.22
 langchain-text-splitters>=0.2.0
 openai>=1.0
 anthropic>=0.40
+# 腾讯云向量库后端（VECTOR_BACKEND=tencent 时启用，服务端内置 embedding）
+tcvectordb>=1.2.0
 
 # Document parsing
 pypdf>=4.0

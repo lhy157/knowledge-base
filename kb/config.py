@@ -21,6 +21,22 @@ class Settings(BaseSettings):
     embedding_dim: int = 1024  # text-embedding-v3 默认维度；通过 llm.embed(..., dimensions=...) 传入
     retrieve_top_k: int = 5
 
+    # 向量存储后端切换：chroma（默认）| tencent（腾讯云向量库，服务端内置 embedding）
+    vector_backend: str = "chroma"
+
+    # 腾讯云向量库配置（VECTOR_BACKEND=tencent 时生效）
+    # 密钥来自 .env，不入库、不写死在代码
+    tencent_vector_url: str = "http://10.0.6.14"
+    tencent_vector_username: str = "root"
+    tencent_vector_key: str = ""
+    tencent_vector_timeout: int = 30
+    tencent_vector_pool_size: int = 2
+    tencent_vector_shard_num: int = 1
+    tencent_vector_replica_num: int = 0
+    tencent_vector_database: str = "ai-database-test"
+    tencent_vector_dim: int = 768  # multilingual-e5-base 输出维度
+    tencent_embedding_model: str = "multilingual-e5-base"
+
     @field_validator("embedding_dim")
     @classmethod
     def _validate_embed_dim(cls, v: int) -> int:

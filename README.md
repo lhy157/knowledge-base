@@ -83,6 +83,36 @@ kb/
 
 > 通义兼容端点：`https://dashscope.aliyuncs.com/compatible-mode/v1`（见 `kb/config.py`）。
 
+### 3.1 向量后端切换（Chroma / 腾讯云向量库）
+
+知识库支持两套向量后端，通过 `.env` 的 `VECTOR_BACKEND` 切换，代码层面对上层（RAG / 路由）完全透明：
+
+| 取值 | 后端 | 嵌入方式 |
+|---|---|---|
+| `chroma`（默认） | 本地 Chroma（`./chroma_data`） | 客户端调用通义 `text-embedding-v3` |
+| `tencent` | 腾讯云向量库 | 服务端内置 embedding（默认 `multilingual-e5-base`） |
+
+切换为腾讯云时，在 `.env` 设置：
+
+```env
+VECTOR_BACKEND=tencent
+TENCENT_VECTOR_URL=http://10.0.6.14
+TENCENT_VECTOR_USERNAME=root
+TENCENT_VECTOR_KEY=你的密钥
+TENCENT_VECTOR_TIMEOUT=30
+TENCENT_VECTOR_POOL_SIZE=2
+TENCENT_VECTOR_SHARD_NUM=1
+TENCENT_VECTOR_REPLICA_NUM=0
+TENCENT_VECTOR_DATABASE=ai-database-test
+TENCENT_VECTOR_DIM=768
+TENCENT_EMBEDDING_MODEL=multilingual-e5-base
+```
+
+要点：
+- 腾讯云后端**无需客户端 embedding**，写入只传 `text`，向量由服务端内置模型生成；多租户隔离仍为每个 `library_id` 一个 `kb_{library_id}` collection。
+- 需安装 SDK：`pip install tcvectordb`（已加入 `requirements.txt`）。
+- 嵌入模型名映射到腾讯云枚举：`multilingual-e5-base` / `bge-large-zh-v1.5` / `m3e-base` 等，维度需与所选模型一致（如 `multilingual-e5-base` 为 768）。
+
 ### 4. 启动
 ```bash
 cd kb
@@ -163,6 +193,36 @@ GET  /providers     查看已接入厂商及配置、Key 获取地址、文档�
 ### 3. 配置（ai_service/config.py，读根目录 `.env`）
 - `AI_SERVICE_PORT`（默认 8000），与 `KB_PORT` 互不冲突
 - 各家密钥见 `.env.example`：`DASHSCOPE_API_KEY` / `HUNYUAN_API_KEY` / `ARK_API_KEY` / `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`
+
+### 3.1 向量后端切换（Chroma / 腾讯云向量库）
+
+知识库支持两套向量后端，通过 `.env` 的 `VECTOR_BACKEND` 切换，代码层面对上层（RAG / 路由）完全透明：
+
+| 取值 | 后端 | 嵌入方式 |
+|---|---|---|
+| `chroma`（默认） | 本地 Chroma（`./chroma_data`） | 客户端调用通义 `text-embedding-v3` |
+| `tencent` | 腾讯云向量库 | 服务端内置 embedding（默认 `multilingual-e5-base`） |
+
+切换为腾讯云时，在 `.env` 设置：
+
+```env
+VECTOR_BACKEND=tencent
+TENCENT_VECTOR_URL=http://10.0.6.14
+TENCENT_VECTOR_USERNAME=root
+TENCENT_VECTOR_KEY=你的密钥
+TENCENT_VECTOR_TIMEOUT=30
+TENCENT_VECTOR_POOL_SIZE=2
+TENCENT_VECTOR_SHARD_NUM=1
+TENCENT_VECTOR_REPLICA_NUM=0
+TENCENT_VECTOR_DATABASE=ai-database-test
+TENCENT_VECTOR_DIM=768
+TENCENT_EMBEDDING_MODEL=multilingual-e5-base
+```
+
+要点：
+- 腾讯云后端**无需客户端 embedding**，写入只传 `text`，向量由服务端内置模型生成；多租户隔离仍为每个 `library_id` 一个 `kb_{library_id}` collection。
+- 需安装 SDK：`pip install tcvectordb`（已加入 `requirements.txt`）。
+- 嵌入模型名映射到腾讯云枚举：`multilingual-e5-base` / `bge-large-zh-v1.5` / `m3e-base` 等，维度需与所选模型一致（如 `multilingual-e5-base` 为 768）。
 
 ### 4. 启动
 ```bash
