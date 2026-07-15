@@ -1,11 +1,11 @@
-"""文档管理路由：上传（解析+切分+向量化）、删除。"""
+"""文档管理路由：上传（解析+切分+向量化）、删除、统计、切片查看。"""
 import datetime
 import uuid
 
 from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
 
 from kb.loader import load_file
-from kb.vectorstore import add_chunks, delete_document
+from kb.vectorstore import add_chunks, delete_document, get_library_stats, get_document_chunks
 
 router = APIRouter(prefix="/kb", tags=["document"])
 
@@ -47,6 +47,33 @@ async def upload_document(
     }
 
 
+@router.get("/libraries/{library_id}/stats")
+def library_stats(
+    library_id: int,
+    user_id: int = Query(..., description="调用方用户ID，仅用于日志/权限校验"),
+):
+    """返回知识库统计：文档数、切片数。"""
+    stats = get_library_stats(library_id)
+    return {
+        "libraryId": library_id,
+        "documentCount": stats["document_count"],
+        "chunkCount": stats["chunk_count"],
+    }
+
+
+@router.get("/documents/{doc_id}/chunks")
+def document_chunks(
+    doc_id: str,
+    library_id: int = Query(..., description="知识库ID，决定查哪个 Chroma collection"),
+    user_id: int = Query(..., description="调用方用户ID，仅用于日志/权限校验"),
+):
+    """返回指定文档的切片列表，用于前端"查看内容"。"""
+    return {
+        "docId": doc_id,
+        "chunks": get_document_chunks(library_id, doc_id),
+    }
+
+
 @router.delete("/documents/{doc_id}")
 def delete_document_api(
     doc_id: str,
@@ -58,3 +85,4 @@ def delete_document_api(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"删除向量失败：{e}")
     return {"deleted": True}
+

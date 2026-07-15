@@ -1,10 +1,11 @@
 """文档解析：支持 PDF / Word / Excel / Markdown / TXT，返回切分后的片段。"""
 import io
+from typing import List, Dict, Any
 
 from kb.splitter import split_text
 
 
-def load_file(filename: str, data: bytes) -> list[dict]:
+def load_file(filename: str, data: bytes) -> List[Dict[str, Any]]:
     name = (filename or "").lower()
     # 无扩展名时按文件头魔数推断，避免图片等二进制被当纯文本处理
     if not name or "." not in name:
@@ -54,3 +55,4 @@ def _xlsx(data: bytes) -> str:
             if cells:
                 lines.append(" | ".join(cells))
     return "\n".join(lines)
+

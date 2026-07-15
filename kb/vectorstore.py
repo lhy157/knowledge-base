@@ -1,4 +1,5 @@
 """Chroma 向量库封装：按 library_id 建独立 collection，实现多租户隔离。"""
+from typing import List, Dict, Any
 import os
 
 import chromadb
@@ -31,7 +32,7 @@ def get_collection(library_id: int):
     )
 
 
-def add_chunks(library_id: int, chunks: list[dict]):
+def add_chunks(library_id: int, chunks: List[Dict[str, Any]]):
     if not chunks:
         return
     col = get_collection(library_id)
@@ -54,7 +55,7 @@ def add_chunks(library_id: int, chunks: list[dict]):
     )
 
 
-def query(library_id: int, vector: list[float], top_k: int) -> list[dict]:
+def query(library_id: int, vector: List[float], top_k: int) -> List[Dict[str, Any]]:
     col = get_collection(library_id)
     res = col.query(query_embeddings=[vector], n_results=top_k)
     docs = res.get("documents") or [[]]
@@ -82,3 +83,44 @@ def count_chunks(library_id: int) -> int:
         return get_collection(library_id).count()
     except Exception:
         return 0
+
+
+def get_library_stats(library_id: int) -> Dict[str, Any]:
+    """返回知识库统计：向量总条数、按 doc_id 聚合的文档数。"""
+    col = get_collection(library_id)
+    try:
+        total = col.count()
+    except Exception:
+        total = 0
+    # 通过 metadatas 聚合 doc_id 数量；无数据时返回 0
+    doc_ids = set()
+    try:
+        all_meta = col.get(include=["metadatas"])
+        for m in (all_meta.get("metadatas") or []):
+            if m:
+                doc_id = m.get("doc_id")
+                if doc_id:
+                    doc_ids.add(doc_id)
+    except Exception:
+        pass
+    return {"chunk_count": total, "document_count": len(doc_ids)}
+
+
+def get_document_chunks(library_id: int, doc_id: str) -> List[Dict[str, Any]]:
+    """返回指定文档在 Chroma 中的全部切片。"""
+    col = get_collection(library_id)
+    res = col.get(where={"doc_id": doc_id}, include=["documents", "metadatas"])
+    docs = res.get("documents") or []
+    metas = res.get("metadatas") or []
+    ids = res.get("ids") or []
+    out = []
+    for i, d in enumerate(docs):
+        m = metas[i] if i < len(metas) else {}
+        out.append({
+            "id": ids[i] if i < len(ids) else f"{doc_id}_{i}",
+            "text": d,
+            "snippet": m.get("snippet", d[:200]) if m else d[:200],
+            "filename": m.get("filename", "") if m else "",
+        })
+    return out
+

@@ -2,6 +2,7 @@
 
 通过通义百炼的 OpenAI 兼容接口调用，需设置环境变量 DASHSCOPE_API_KEY。
 """
+from typing import List, Dict, Any, Optional
 from openai import OpenAI
 
 from kb.config import settings
@@ -19,13 +20,13 @@ def _get_client() -> OpenAI:
     return _client
 
 
-def embed(texts: list[str]) -> list[list[float]]:
+def embed(texts: List[str]) -> List[List[float]]:
     """批量文本向量化，返回同顺序的向量列表。
 
     通义 text-embedding-v3 单批 input 上限为 10 条，且维度必须落在
     [64,128,256,512,768,1024]，故按 10 条一批切片发送。
     """
-    results: list[list[float]] = []
+    results: List[List[float]] = []
     for i in range(0, len(texts), 10):
         batch = texts[i:i + 10]
         resp = _get_client().embeddings.create(
@@ -37,9 +38,9 @@ def embed(texts: list[str]) -> list[list[float]]:
     return results
 
 
-def stream_chat(prompt: str, history: list[dict] | None = None):
+def stream_chat(prompt: str, history: Optional[List[Dict[str, Any]]] = None):
     """流式对话，yield 增量文本片段。"""
-    messages: list[dict] = []
+    messages: List[Dict[str, Any]] = []
     if history:
         for h in history:
             role = h.get("role")
@@ -58,3 +59,4 @@ def stream_chat(prompt: str, history: list[dict] | None = None):
         delta = chunk.choices[0].delta.content
         if delta:
             yield delta
+

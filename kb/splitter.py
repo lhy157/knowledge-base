@@ -1,8 +1,9 @@
 """中文友好切分：优先按段落 / 句号 / 问号断句，而非按空格。"""
+from typing import List, Dict
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-def split_text(raw: str, filename: str) -> list[dict]:
+def split_text(raw: str, filename: str) -> List[Dict]:
     raw = (raw or "").strip()
     if not raw:
         return []

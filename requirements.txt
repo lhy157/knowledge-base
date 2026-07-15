@@ -1,20 +1,20 @@
-# ===== Web 框架 =====
+# Web framework
 fastapi>=0.110
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
 
-# ===== 配置 / 数据模型 =====
+# Config / data model
 pydantic>=2.6
 pydantic-settings>=2.1
 python-dotenv>=1.0
 
-# ===== 向量库 =====
+# Vector store
 chromadb>=0.4.22
-langchain-text-splitters>=0.2.0        # 仅用其 RecursiveCharacterTextSplitter 做中文切分
-openai>=1.0                            # 通义百炼 OpenAI 兼容接口（qwen + text-embedding-v3）
-anthropic>=0.40                        # ai_service 的 Claude 原生 SDK
+langchain-text-splitters>=0.2.0
+openai>=1.0
+anthropic>=0.40
 
-# ===== 文档解析 =====
+# Document parsing
 pypdf>=4.0
 python-docx>=1.1
 openpyxl>=3.1
