@@ -4,7 +4,7 @@
 """
 from openai import OpenAI
 
-from app.config import settings
+from kb.config import settings
 
 _client = None
 

@@ -4,8 +4,8 @@ import json
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from app.rag import answer
-from app.schemas import ChatRequest
+from kb.rag import answer
+from kb.schemas import ChatRequest
 
 router = APIRouter(prefix="/kb", tags=["chat"])
 

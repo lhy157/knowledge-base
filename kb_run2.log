@@ -1,9 +1,0 @@
-INFO:     Started server process [53092]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
-INFO:     127.0.0.1:57703 - "POST /kb/documents/upload HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57738 - "DELETE /kb/documents/4850fc46-800f-44d9-b608-0942f4b4fe69?user_id=2&library_id=1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55195 - "GET /kb/health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55263 - "POST /kb/documents/upload HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55322 - "POST /kb/documents/upload HTTP/1.1" 200 OK

@@ -1,6 +1,6 @@
 """多模型统一接入服务（ai_service）FastAPI 入口。
 
-独立模块、独立端口（默认 8000，见 ai_service.config），与 kb 服务（app/）互不干扰。
+独立模块、独立端口（默认 8000，见 ai_service.config），与 kb 知识库服务（kb/）互不干扰。
 对外接口保持原有 URL 不变：
     POST /generate      统一生成（流式 SSE / 非流式，可指定任意厂商模型）
     POST /doubao_chat  豆包专用接口（默认豆包模型）
@@ -119,7 +119,12 @@ async def doubao_chat(request: Request):
         return JSONResponse(content={"model": real_model, "content": text})
 
 
-if __name__ == "__main__":
+def main():
+    """命令行入口：pip install 后可直接执行 `ai-service` 启动。"""
     import uvicorn
 
     uvicorn.run("ai_service.main:app", host="0.0.0.0", port=settings.ai_service_port)
+
+
+if __name__ == "__main__":
+    main()

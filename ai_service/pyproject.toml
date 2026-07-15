@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-service"
+version = "1.0.0"
+description = "多模型统一接入服务（通义 / 混元 / 豆包 / DeepSeek / OpenAI / Claude）"
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.1",
+    "python-dotenv>=1.0",
+    "openai>=1.0",                        # 通义 / 混元 / 豆包 / DeepSeek / OpenAI
+    "anthropic>=0.40",                    # Claude 原生 SDK
+]
+
+[project.scripts]
+ai-service = "ai_service.main:main"
+
+[tool.setuptools]
+# pyproject.toml 所在目录本身就是 ai_service 包，故把当前目录映射为包 ai_service
+package-dir = {"ai_service" = "."}
+packages = ["ai_service"]

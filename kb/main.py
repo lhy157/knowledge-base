@@ -2,7 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import document, chat
+from kb.config import settings
+from kb.routers import document, chat
 
 app = FastAPI(title="企业知识库智能助手", version="1.0.0")
 
@@ -19,14 +20,16 @@ app.include_router(chat.router)
 
 
 @app.get("/kb/health")
-
 def health():
-
     return {"status": "ok", "service": "kb-server", "port": settings.kb_port}
 
 
-if __name__ == "__main__":
+def main():
+    """命令行入口：pip install 后可直接执行 `kb-server` 启动。"""
     import uvicorn
-    from app.config import settings
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.kb_port)
+    uvicorn.run("kb.main:app", host="0.0.0.0", port=settings.kb_port)
+
+
+if __name__ == "__main__":
+    main()

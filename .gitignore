@@ -6,3 +6,9 @@ venv/
 chroma_data/
 .idea/
 .DS_Store
+*.log
+.tmp/
+.pytest_cache/
+*.egg-info/
+build/
+dist/

@@ -3,8 +3,8 @@ import os
 
 import chromadb
 
-from app.config import settings
-from app.llm import embed
+from kb.config import settings
+from kb.llm import embed
 
 
 _client = None

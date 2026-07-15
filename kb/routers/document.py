@@ -4,8 +4,8 @@ import uuid
 
 from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
 
-from app.loader import load_file
-from app.vectorstore import add_chunks, delete_document
+from kb.loader import load_file
+from kb.vectorstore import add_chunks, delete_document
 
 router = APIRouter(prefix="/kb", tags=["document"])
 
