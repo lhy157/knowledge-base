@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
 
 from kb.loader import load_file
-from kb.vectorstore import add_chunks, delete_document, get_library_stats, get_document_chunks
+from kb.vectorstore import add_chunks, delete_document, delete_library, get_library_stats, get_document_chunks
 
 router = APIRouter(prefix="/kb", tags=["document"])
 
@@ -20,6 +20,9 @@ async def upload_document(
     filename = file.filename or "unknown"
     try:
         chunks = load_file(filename, data)
+    except ValueError as e:
+        # 类型不支持（二进制/未知扩展名）：明确 400，提示用户换文件
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"文档解析失败：{e}")
     if not chunks:
@@ -84,5 +87,19 @@ def delete_document_api(
         delete_document(library_id, doc_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"删除向量失败：{e}")
+    return {"deleted": True}
+
+
+@router.delete("/libraries/{library_id}")
+def delete_library_api(
+    library_id: int,
+    user_id: int = Query(..., description="调用方用户ID，仅用于日志/权限校验"),
+):
+    """删除整个知识库的向量：直接丢弃该库对应的 collection（kb_{library_id}），
+    彻底清除全部文档切片，避免删除知识库后重建同名库读到旧向量。"""
+    try:
+        delete_library(library_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"删除知识库向量失败：{e}")
     return {"deleted": True}
 

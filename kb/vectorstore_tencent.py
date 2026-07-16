@@ -137,12 +137,28 @@ def query(library_id: int, text: str, top_k: int) -> List[Dict[str, Any]]:
             "retrieveVector": False,
         },
     }
-    res = coll._conn.post("/document/search", body, None, ai=True)
+    try:
+        # 注意：此处依赖 tcvectordb 私有底层接口（见上方 docstring 说明），
+        # 已锁定 requirements.txt 中 tcvectordb==2.1.1；SDK 升级后需重新验证。
+        res = coll._conn.post("/document/search", body, None, ai=True)
+    except Exception as e:
+        raise RuntimeError(f"腾讯云向量检索失败（底层接口异常）：{e}")
     rb = res.body if hasattr(res, "body") else res
-    docs = rb.get("documents", [])
+    if not isinstance(rb, dict):
+        return []
+    # 业务错误码优先于空结果：code 非 0 表示检索失败，需显式抛出
+    if rb.get("code") not in (None, 0, "0"):
+        raise RuntimeError(f"腾讯云向量检索返回错误：code={rb.get('code')} msg={rb.get('msg')}")
+    docs = rb.get("documents", []) or []
+    if not isinstance(docs, list) or not docs:
+        return []
     hits = docs[0] if docs else []
+    if not isinstance(hits, list):
+        return []
     out = []
     for item in hits:
+        if not isinstance(item, dict):
+            continue
         text_val = item.get("text", "")
         out.append(
             {
@@ -157,6 +173,14 @@ def query(library_id: int, text: str, top_k: int) -> List[Dict[str, Any]]:
 def delete_document(library_id: int, doc_id: str):
     coll = _get_collection(library_id)
     coll.delete(filter=f'doc_id="{doc_id}"')
+
+
+def delete_library(library_id: int):
+    """删除整个知识库对应的 collection（向量 + 元数据全清）；不存在时忽略。"""
+    try:
+        _get_db().drop_collection(name=collection_name(library_id))
+    except Exception:
+        pass
 
 
 def count_chunks(library_id: int) -> int:

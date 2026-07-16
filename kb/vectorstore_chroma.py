@@ -84,6 +84,14 @@ def delete_document(library_id: int, doc_id: str):
     col.delete(where={"doc_id": doc_id})
 
 
+def delete_library(library_id: int):
+    """删除整个知识库对应的 collection（向量 + 元数据全清）；不存在时忽略。"""
+    try:
+        get_client().delete_collection(name=collection_name(library_id))
+    except Exception:
+        pass
+
+
 def count_chunks(library_id: int) -> int:
     try:
         return get_collection(library_id).count()

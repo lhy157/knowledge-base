@@ -25,10 +25,15 @@ def health():
 
 
 def main():
-    """命令行入口：pip install 后可直接执行 `kb-server` 启动。"""
+    """命令行入口：pip install 后可直接执行 `kb-server` 启动。
+
+    默认仅监听 127.0.0.1：知识库服务不解析 JWT、无鉴权，必须由 Java aicontent
+    在内网转发调用，绝不可直接暴露公网。多机/容器部署时改为绑定内网网卡，
+    并通过安全组/防火墙限制仅 aicontent 可访问 8002 端口。
+    """
     import uvicorn
 
-    uvicorn.run("kb.main:app", host="0.0.0.0", port=settings.kb_port)
+    uvicorn.run("kb.main:app", host="127.0.0.1", port=settings.kb_port)
 
 
 if __name__ == "__main__":

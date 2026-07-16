@@ -14,7 +14,9 @@ langchain-text-splitters>=0.2.0
 openai>=1.0
 anthropic>=0.40
 # 腾讯云向量库后端（VECTOR_BACKEND=tencent 时启用，服务端内置 embedding）
-tcvectordb>=1.2.0
+# 锁定 2.1.1：vectorstore_tencent.query 调用的底层 AI 检索私有接口(_conn.post)
+# 仅在该版本验证过，升级 SDK 后需重新验证，否则检索可能整体 500。
+tcvectordb==2.1.1
 
 # Document parsing
 pypdf>=4.0

@@ -43,6 +43,11 @@ def delete_document(library_id: int, doc_id: str):
     return _get_backend().delete_document(library_id, doc_id)
 
 
+def delete_library(library_id: int):
+    """删除整个知识库的向量（丢弃对应 collection），用于整库删除时彻底清理。"""
+    return _get_backend().delete_library(library_id)
+
+
 def count_chunks(library_id: int) -> int:
     return _get_backend().count_chunks(library_id)
 

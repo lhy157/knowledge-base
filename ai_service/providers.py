@@ -148,11 +148,14 @@ class OpenAICompatibleProvider(BaseProvider):
                     continue
                 delta = chunk.choices[0].delta
                 if delta and delta.content:
-                    yield f"data: {json.dumps({'content': delta.content}, ensure_ascii=False)}\n\n"
-            yield "data: [DONE]\n\n"
+                    # 统一 SSE 信封：{type:content,text} 增量文本
+                    yield f"data: {json.dumps({'type': 'content', 'text': delta.content}, ensure_ascii=False)}\n\n"
+            # 统一 SSE 信封：{type:done} 正常结束
+            yield "data: {\"type\":\"done\"}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': f'[{self.meta.display}] {e}'}, ensure_ascii=False)}\n\n"
-            yield "data: [DONE]\n\n"
+            # 统一 SSE 信封：{type:error,error} 异常（随后补 done 让连接优雅关闭）
+            yield f"data: {json.dumps({'type': 'error', 'error': f'[{self.meta.display}] {e}'}, ensure_ascii=False)}\n\n"
+            yield "data: {\"type\":\"done\"}\n\n"
 
     async def complete(self, prompt: str, model: str, **kwargs) -> str:
         resp = await self.client.chat.completions.create(
@@ -182,11 +185,14 @@ class AnthropicProvider(BaseProvider):
                 messages=[{"role": "user", "content": prompt}],
             ) as stream:
                 async for text in stream.text_stream:
-                    yield f"data: {json.dumps({'content': text}, ensure_ascii=False)}\n\n"
-            yield "data: [DONE]\n\n"
+                    # 统一 SSE 信封：{type:content,text} 增量文本
+                    yield f"data: {json.dumps({'type': 'content', 'text': text}, ensure_ascii=False)}\n\n"
+            # 统一 SSE 信封：{type:done} 正常结束
+            yield "data: {\"type\":\"done\"}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': f'[{self.meta.display}] {e}'}, ensure_ascii=False)}\n\n"
-            yield "data: [DONE]\n\n"
+            # 统一 SSE 信封：{type:error,error} 异常（随后补 done 让连接优雅关闭）
+            yield f"data: {json.dumps({'type': 'error', 'error': f'[{self.meta.display}] {e}'}, ensure_ascii=False)}\n\n"
+            yield "data: {\"type\":\"done\"}\n\n"
 
     async def complete(self, prompt: str, model: str, **kwargs) -> str:
         resp = await self.client.messages.create(

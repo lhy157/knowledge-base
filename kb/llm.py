@@ -43,6 +43,10 @@ def stream_chat(prompt: str, history: Optional[List[Dict[str, Any]]] = None):
     messages: List[Dict[str, Any]] = []
     if history:
         for h in history:
+            # 历史消息形态多样（对象/数组等），做健壮性保护，避免非 dict 元素
+            # 调用 .get 时抛 AttributeError 导致整轮问答静默失败
+            if not isinstance(h, dict):
+                continue
             role = h.get("role")
             content = h.get("content")
             if role and content:
