@@ -57,8 +57,50 @@ def _pdf(data: bytes) -> str:
 def _docx(data: bytes) -> str:
     from docx import Document
 
-    doc = Document(io.BytesIO(data))
-    return "\n".join(p.text for p in doc.paragraphs if p.text)
+    try:
+        doc = Document(io.BytesIO(data))
+        return "\n".join(p.text for p in doc.paragraphs if p.text)
+    except Exception as e:
+        # python-docx 已知 bug：某些含复杂元素（文本框/SmartArt/OLE）的 .docx
+        # 内部关系目标为 "NULL" 字符串，导致报
+        #   "There is no item named 'NULL' in the archive"
+        # fallback：直接从 ZIP 内 word/document.xml 用 lxml 提取纯文本。
+        return _docx_fallback(data, e)
+
+
+def _docx_fallback(data: bytes, original_error: Exception) -> str:
+    """python-docx 解析失败时的 fallback：直接从 ZIP 内 word/document.xml 提取文本。
+
+    适用场景：
+    - 文档含 SmartArt / 文本框 / OLE 嵌入等复杂元素，内部 relTarget 为 "NULL"
+    - WPS / 第三方工具生成的非标准 docx
+    """
+    import zipfile
+    import xml.etree.ElementTree as ET
+
+    # docx 本质是 ZIP 包，word/document.xml 是正文 XML
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            xml_bytes = zf.read("word/document.xml")
+    except (zipfile.BadZipFile, KeyError) as ze:
+        raise RuntimeError(f"docx ZIP 结构异常（非标准 .docx）：{ze}") from original_error
+
+    # 命名空间处理：Word XML 使用 w: 前缀
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    root = ET.fromstring(xml_bytes)
+    paragraphs = root.findall(".//w:p", ns)
+
+    texts = []
+    for p in paragraphs:
+        runs = p.findall(".//w:t", ns)
+        para_text = "".join(r.text or "" for r in runs if r.text)
+        if para_text.strip():
+            texts.append(para_text.strip())
+
+    if not texts:
+        raise RuntimeError(f"docx fallback 提取到空文本，原始错误：{original_error}") from original_error
+
+    return "\n".join(texts)
 
 
 def _xlsx(data: bytes) -> str:
