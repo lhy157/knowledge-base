@@ -137,14 +137,20 @@ class OpenAICompatibleProvider(BaseProvider):
 
     async def stream(self, prompt: str, model: str, **kwargs) -> AsyncGenerator[str, None]:
         try:
+            # stream_options.include_usage：OpenAI 兼容端点会在末个 chunk 回传 token 用量
             stream = await self.client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 stream=True,
+                extra_body={"stream_options": {"include_usage": True}},
                 **kwargs,
             )
             async for chunk in stream:
+                # usage chunk：choices 为空，usage 字段带 token 统计（prompt/completion/total）
                 if not chunk.choices:
+                    usage = getattr(chunk, "usage", None)
+                    if usage is not None:
+                        yield f"data: {json.dumps({'type': 'usage', 'prompt_tokens': usage.prompt_tokens, 'completion_tokens': usage.completion_tokens, 'total_tokens': usage.total_tokens}, ensure_ascii=False)}\n\n"
                     continue
                 delta = chunk.choices[0].delta
                 if delta and delta.content:
